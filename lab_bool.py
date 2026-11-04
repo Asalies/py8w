@@ -1,0 +1,5 @@
+print(10 > 3, 10 < 3, 10 == 3, 10 != 3)
+print(True + True)
+print(bool(0), bool(1), bool(""), bool("0"), bool([]))
+print(1 < 2 < 3, 3 < 2 < 1)
+print(0.1 + 0.2 == 0.3)
