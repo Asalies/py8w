@@ -9,4 +9,4 @@ elif bmi < 28:
     label = "偏胖"
 else:
     label = "肥胖"
-print(f"BMI = {bmi},属于{label}")
+print(f"BMI = {bmi:.2f}，属于{label}")
