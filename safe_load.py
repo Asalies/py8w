@@ -1,6 +1,6 @@
 from pathlib import Path
 
-SRC = Path("scores_bad.txt")
+SRC = Path("scores.txt")
 
 def safe_load(path):
     """读分数文件，坏行跳过并报出行号，好行照常返回"""
