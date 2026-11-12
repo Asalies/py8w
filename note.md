@@ -34,4 +34,4 @@ git add和commit，并使用log查看变更
 import 会把文件执行一遍，使用if __name = "__main__",可以在只有本文件执行时才会执行if内代码
 
 # 2026/11/11
-文件读写
+文件读写 使用enumerate(f,1)读取行号
