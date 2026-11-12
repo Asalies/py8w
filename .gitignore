@@ -49,3 +49,6 @@ local_settings.py
 
 # === Jupyter Notebook 缓存 ===
 .ipynb_checkpoints
+
+# === 运行生成文件 ===
+report.txt
