@@ -40,6 +40,6 @@ if __name__ == "__main__":
     ]
     with open(DST, "w", encoding="utf-8") as f:
         for s in lines:
-            f.write(s + "\n")
+            f.writelines(s + "\n")
     for s in lines:
         print(s)
