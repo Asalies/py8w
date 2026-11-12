@@ -3,6 +3,7 @@ from pathlib import Path
 SRC = Path("scores.txt")
 DST = Path("report.txt")
 
+
 def load(path):
     rows = []
     with open(path, encoding="utf-8") as f:
@@ -10,7 +11,7 @@ def load(path):
             line = line.strip()
             if not line:
                 continue
-            parts = line.split(",")          # 改这里
+            parts = line.split(",")  # 改这里
             if len(parts) != 2:
                 print(f"第 {lineno} 行格式不对，跳过: {line!r}")
                 continue
@@ -18,8 +19,9 @@ def load(path):
             rows.append((name, int(score)))
     return rows
 
+
 def summarize(rows):
-    if not rows:                          # 加保护
+    if not rows:  # 加保护
         return 0, 0.0, "", 0
     total = 0
     best_name, best_score = "", -1
@@ -29,17 +31,17 @@ def summarize(rows):
             best_name, best_score = name, score
     return total, total / len(rows), best_name, best_score
 
+
 if __name__ == "__main__":
     rows = load(SRC)
     total, avg, best_name, best_score = summarize(rows)
     lines = [
         f"人数: {len(rows)}",
         f"总分: {total}",
-        f"平均分: {avg:.2f}",              # 去掉冒号后的空格
+        f"平均分: {avg:.2f}",  # 去掉冒号后的空格
         f"最高分: {best_name} {best_score}",
     ]
     with open(DST, "w", encoding="utf-8") as f:
-        for s in lines:
-            f.writelines(s + "\n")
+        f.writelines(s + "\n" for s in lines)
     for s in lines:
         print(s)
