@@ -160,3 +160,18 @@ except ValueError as e 能拿到原始错误信息，比只写一句"转换失�
 
 ### 明天从哪继续
 11/13：JSON / csv 模块。今天 safe_load.py 手写的 split + 判断，用 csv 模块几行就能替掉。
+
+# 2026/11/13
+
+### 做了什么
+safe_load_v2.py 用 csv 模块重写；json_io.py 完成 txt→json→读回
+
+### 学到了什么
+今天至少有三条：strip 要用 = 接住、手写 split 遇引号会错位、json 带类型
+
+### 卡在哪
+盲敲漏了 strip()，靠对照才发现。原因：不知道它为什么存在
+
+### 明天从哪继续
+11/14：`pathlib` 路径操作 + 搞清「当前工作目录」。今天写的 `SRC = Path("scores.txt")` 是相对路径，只在 `D:\Project\py8w` 里跑得通，换个目录运行就找不到文件。
+遗留：`accumulator.py` 三处 `tires` 拼写错（应为 `tries`）；`bmi.py` / `grade.py` / `r_bmi.py` 的 `hight` 未改。
