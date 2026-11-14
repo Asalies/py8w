@@ -175,3 +175,19 @@ safe_load_v2.py 用 csv 模块重写；json_io.py 完成 txt→json→读回
 ### 明天从哪继续
 11/14：`pathlib` 路径操作 + 搞清「当前工作目录」。今天写的 `SRC = Path("scores.txt")` 是相对路径，只在 `D:\Project\py8w` 里跑得通，换个目录运行就找不到文件。
 遗留：`accumulator.py` 三处 `tires` 拼写错（应为 `tries`）；`bmi.py` / `grade.py` / `r_bmi.py` 的 `hight` 未改。
+
+# 2026/11/14
+
+### 做了什么
+paths.py 摸清三个「在哪」；safe_load_v2.py 改用 __file__
+
+### 学到了什么
+相对路径的起点是 cwd 不是脚本、__file__ 是稳定锚点、Path.cwd() 会变、Path().parent取父目录
+
+### 卡在哪
+row取值时，下标从1开始了，看之前记录才发觉。
+
+### 明天从哪继续
+11/15：周日复盘，不学新内容。先把两次没落盘的东西补上——`.gitignore` 删掉 `tricky.csv` 那行后 `git add tricky.csv`；`safe_load_v2.py` 删首行空行、`import csv` 挪到 `from pathlib` 之后、`SRC` 改成 `Path(__file__).parent / "scores.txt"`、`print(f"  {name}: {score}")` 补回两个空格；然后在 `tmp_test/` 里跑 `python ..\safe_load_v2.py`，必须仍读到 4 条。
+复盘重点：这周撞了五次「不报错的错」——`strip()` 没用 `=` 接住、手写 `split` 遇引号错位、`json` 的 `"1"` 是 `str`、`.gitignore` 静默拦掉手写数据、`p.suffix` 是 `".txt"` 不是 `"txt"`。
+遗留：`accumulator.py` 三处 `tires`→`tries`；`bmi.py` / `grade.py` / `r_bmi.py` 的 `hight`→`height`。
