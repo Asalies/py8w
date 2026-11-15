@@ -202,6 +202,10 @@ row取值时，下标从1开始了，看之前记录才发觉。
 - 11/13 csv/JSON：标准库替掉手写 split
 - 11/14 pathlib：cwd 与脚本目录的区别
 - 11/15 删除accumulator无关变量并修改变量名，增加grade的异常判断，修改bmi的变量名
+- accumulator.py：sum→total（4处，原遮蔽内置 sum）、tires=0 三行删除（死代码，改名无效）
+- bmi.py：hight_m→height（2处）、weight_h→weight（2处，注意不是 height）
+- r_bmi.py：hight→height（2处），weight 本来就对
+- grade.py：补 try/except ValueError + math.isnan，26 组输入全过
 
 ### 这周的五个「不报错的错」
 1. `strip()` 不用 `=` 接住，`if l.strip()` 只判断不改 l
@@ -213,3 +217,7 @@ row取值时，下标从1开始了，看之前记录才发觉。
 
 ### 卡在哪
 print 缩进补错成 `name:` 格式，在写循环读取时还是有点不太明白不知道该怎么写，想了一下是根据数据格式进行判断
+try/except ValueError 只拦「字符串不能转数字」，拦不住 nan。
+float('nan') 是成功转换，不抛异常；而 nan 的所有比较都返回 False，
+于是绕过「无效输入」门一路滑进 else，输出「F，不及格」还不报错。
+识别：math.isnan(x) 或 x != x。
