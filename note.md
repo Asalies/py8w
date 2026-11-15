@@ -207,13 +207,22 @@ row取值时，下标从1开始了，看之前记录才发觉。
 - r_bmi.py：hight→height（2处），weight 本来就对
 - grade.py：补 try/except ValueError + math.isnan，26 组输入全过
 
-### 这周的五个「不报错的错」
+### 这周的六个「不报错的错」
 1. `strip()` 不用 `=` 接住，`if l.strip()` 只判断不改 l
 2. 手写 `split` 遇引号内逗号，列会错位但照样返回
 3. `json` 的 `"1"` 是 str，`+ 1` 才报错
 4. `.gitignore` 拦了手写测试数据，`git add` 静默跳过
 5. `p.suffix` 是 `".txt"` 不是 `"txt"`
-（五条是同一个模式：跑得通，但结果错）
+6. 两个 pip 不是冲突
+where.exe pip 列出 2 条 = 按 PATH 顺序列出全部同名命令，不是报错。
+venv 的 Activate.ps1 第 246-247 行：先用 _OLD_VIRTUAL_PATH 存原 PATH，
+再把 .venv\Scripts 插到最前。deactivate 再还原。
+裸写 pip 只执行第一条 → 顺序决定装到哪里。
+venv 里其实有 3 个壳子：pip.exe / pip3.exe / pip3.11.exe。
+真正的 pip 是 Lib\site-packages\pip\ 目录，壳子删了 python -m pip 照样用，
+但 ensurepip 不会把它装回来（实测删 pip.exe 后 ensurepip --upgrade 无效果）。
+结论：一个都别删，命令一律写 python -m pip。
+（六条是同一个模式：跑得通，但结果错）
 
 ### 卡在哪
 print 缩进补错成 `name:` 格式，在写循环读取时还是有点不太明白不知道该怎么写，想了一下是根据数据格式进行判断
@@ -221,3 +230,25 @@ try/except ValueError 只拦「字符串不能转数字」，拦不住 nan。
 float('nan') 是成功转换，不抛异常；而 nan 的所有比较都返回 False，
 于是绕过「无效输入」门一路滑进 else，输出「F，不及格」还不报错。
 识别：math.isnan(x) 或 x != x。
+
+## 加学
+### 做了什么
+- python -m pip 自证归属（sys.prefix 含 .venv、pip --version 路径含 .venv）
+- install requests：1 个库带进 4 个依赖，freeze 0 行 → 5 行
+- requirements.txt 入库（git check-ignore 确认未被忽略）
+- day16.py：requests.get(timeout=5) → raise_for_status → json() → 落盘 ensure_ascii=False
+- 主动删 tmp_test 重跑，验证 mkdir 在函数内
+
+### 学到了什么
+- pip 是独立程序，裸写 pip 有歧义；python -m pip 用「当前这个 python」的 pip
+- 依赖：只要 requests，来 certifi / charset_normalizer / idna / urllib3
+- 失败分两层：网络层（Timeout/ConnectionError，拿不到 status_code）vs HTTP 层（403/404，能拿到 status_code）
+- raise_for_status() 把 HTTP 层失败变成异常；RequestException 是三者共同父类，一句兜住
+- 403 ≠ 404：403 是「不给你」，404 是「没有」
+- r.json() 里的数字还是 int，不用再转
+
+### 卡在哪
+执行时显示了r.json()但是有报错No such file or directory，发现是没写创建文件语句
+
+### 明天从哪继续
+- requests 的编码坑：响应头没有 charset 时会发生什么
