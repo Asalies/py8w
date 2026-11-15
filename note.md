@@ -190,10 +190,10 @@ row取值时，下标从1开始了，看之前记录才发觉。
 ### 明天从哪继续
 11/15：周日复盘，不学新内容。先把两次没落盘的东西补上——`.gitignore` 删掉 `tricky.csv` 那行后 `git add tricky.csv`；`safe_load_v2.py` 删首行空行、`import csv` 挪到 `from pathlib` 之后、`SRC` 改成 `Path(__file__).parent / "scores.txt"`、`print(f"  {name}: {score}")` 补回两个空格；然后在 `tmp_test/` 里跑 `python ..\safe_load_v2.py`，必须仍读到 4 条。
 复盘重点：这周撞了五次「不报错的错」——`strip()` 没用 `=` 接住、手写 `split` 遇引号错位、`json` 的 `"1"` 是 `str`、`.gitignore` 静默拦掉手写数据、`p.suffix` 是 `".txt"` 不是 `"txt"`。
-遗留：`accumulator.py` 三处 `tires`→`tries`；`bmi.py` / `grade.py` / `r_bmi.py` 的 `hight`→`height`。
+遗留：`accumulator.py` 三处 `tires`→`tries`；`bmi.py` / `r_bmi.py` 的 `hight`→`height`。
 
-# 2026/11/15 复盘（11/9–11/14）
-
+# 2026/11/15 
+## 复盘（11/9–11/14）
 ### 这周做了什么
 - 11/9  函数：def / return / 默认参数
 - 11/10 模块：import / `__name__` / from import
