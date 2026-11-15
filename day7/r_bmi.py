@@ -1,7 +1,7 @@
-hight = float(input("请输入身高（米）："))
+height = float(input("请输入身高（米）："))
 weight = float(input("请输入体重（kg）："))
 
-result = weight/(hight**2)
+result = weight/(height**2)
 
 if result < 18.5:
     label = "偏瘦"

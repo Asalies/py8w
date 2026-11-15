@@ -191,3 +191,27 @@ row取值时，下标从1开始了，看之前记录才发觉。
 11/15：周日复盘，不学新内容。先把两次没落盘的东西补上——`.gitignore` 删掉 `tricky.csv` 那行后 `git add tricky.csv`；`safe_load_v2.py` 删首行空行、`import csv` 挪到 `from pathlib` 之后、`SRC` 改成 `Path(__file__).parent / "scores.txt"`、`print(f"  {name}: {score}")` 补回两个空格；然后在 `tmp_test/` 里跑 `python ..\safe_load_v2.py`，必须仍读到 4 条。
 复盘重点：这周撞了五次「不报错的错」——`strip()` 没用 `=` 接住、手写 `split` 遇引号错位、`json` 的 `"1"` 是 `str`、`.gitignore` 静默拦掉手写数据、`p.suffix` 是 `".txt"` 不是 `"txt"`。
 遗留：`accumulator.py` 三处 `tires`→`tries`；`bmi.py` / `grade.py` / `r_bmi.py` 的 `hight`→`height`。
+
+# 2026/11/15 复盘（11/9–11/14）
+
+### 这周做了什么
+- 11/9  函数：def / return / 默认参数
+- 11/10 模块：import / `__name__` / from import
+- 11/11 文件读写：with / enumerate / writelines
+- 11/12 异常：try/except 只包 int(raw)
+- 11/13 csv/JSON：标准库替掉手写 split
+- 11/14 pathlib：cwd 与脚本目录的区别
+
+### 这周的五个「不报错的错」
+1. `strip()` 不用 `=` 接住，`if l.strip()` 只判断不改 l
+2. 手写 `split` 遇引号内逗号，列会错位但照样返回
+3. `json` 的 `"1"` 是 str，`+ 1` 才报错
+4. `.gitignore` 拦了手写测试数据，`git add` 静默跳过
+5. `p.suffix` 是 `".txt"` 不是 `"txt"`
+（五条是同一个模式：跑得通，但结果错）
+
+### 卡在哪
+1/14 把旧版注释贴回文件、print 缩进补错成 `name:` 格式，在写循环读取时还是有点不太明白不知道该怎么写，想了一下是根据数据格式进行判断
+
+### 明天从哪继续
+11/16：
