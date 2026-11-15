@@ -9,11 +9,20 @@ def text_to_json(src=SRC, dst=DST):
     rows=[]
     with open(src,encoding="utf-8",newline="") as f:
         reader=csv.reader(f)
-        for line in reader:
-            if not line:
+        for lineno,row in enumerate(reader,1):
+            if not row or all(not c.strip() for c in row):
                 continue
-            name,raw=line[0].strip(),line[1].strip()
-            rows.append({"姓名":name.strip(),"分数":int(raw)})
+            if len(row) != 2:
+                print(f"第{lineno}行格式不对，跳过：{row!r}")
+                continue
+
+            # 门 3：这个值能变成我要的类型吗
+            try:
+                score = int(row[1].strip())
+            except ValueError:
+                print(f"第{lineno}行分数不是整数，跳过：{row!r}")
+                continue
+            rows.append({"姓名":row[0].strip(),"分数":score})
     with open(dst,"w",encoding="utf-8") as f:
         json.dump(rows,f,ensure_ascii=False,indent=2)
     return dst
@@ -23,6 +32,7 @@ def safe_json(dst=DST):
         return json.load(f)
 
 if __name__=="__main__":
+    DST.parent.mkdir(parents=True, exist_ok=True)
     text_to_json()
     data=safe_json()
     num=len(data)

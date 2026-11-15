@@ -13,6 +13,7 @@ def txt_to_json(src=SRC, dst=DST):
                 continue
             name, raw = line.split(",")
             rows.append({"姓名": name.strip(), "分数": int(raw)})
+    dst.parent.mkdir(parents=True, exist_ok=True)
     with open(dst,"w",encoding="utf-8") as f:
         json.dump(rows,f,ensure_ascii=False,indent=2)
     return dst
