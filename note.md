@@ -250,5 +250,31 @@ float('nan') 是成功转换，不抛异常；而 nan 的所有比较都返回 F
 ### 卡在哪
 执行时显示了r.json()但是有报错No such file or directory，发现是没写创建文件语句
 
+### 验收通过 ≠ 参数生效
+day16.py 落盘后看到结构正确，就以为 ensure_ascii=False 验证过了。
+但 jsonplaceholder todo/1 全是英文，实测参数开与关输出逐字节相同。
+ensure_ascii 只影响非 ASCII 字符的 \u 转义，数据里没有汉字，它就没有作用对象。
+真正被验证的：indent=2、False→false、dict 保序。
+教训：验收标准要保证「被验的东西的作用对象」真的出现在数据里。
+
 ### 明天从哪继续
-- requests 的编码坑：响应头没有 charset 时会发生什么
+- 编码坑：响应头没有 charset 时 requests 会猜编码
+  （text/html 猜 ISO-8859-1，中文必乱码）；
+  最阴的是 r.json() 在编码猜错时不报错，返回键名乱码的 dict，rc=0。
+- 补完 Get-Content tmp_test\remote.json 的确认
+### 补：ensure_ascii=False 双向验证完成
+python -c ... 写入 {'备注':'中文'} 到 t.json（encoding='utf-8'）
+Get-Content t.json -Encoding utf8 → {"备注": "中文"}，汉字保住。
+
+- 参数只管非 ASCII 字符：True/省略 → \u5907\u6ce8；False → 备注。
+  上次 todo/1 全英文，开关拨哪边都一样，所以什么也没验证。
+  这次数据里有汉字，两个方向都看到了，才算验证完成。
+- encoding='utf-8' 必须写在 open() 里。少了它 Windows 默认 cp936，
+  文件变成 GBK 字节，和 UTF-8 字节完全不同：
+  UTF-8: b'{"\xe5\xa4\x87\xe6\xb3\xa8": ...}'  GBK: b'{"\xb1\xb8\xd7\xa2": ...}'
+- PS7 实测 Get-Content 默认就是 utf-8，-Encoding utf8 可以省；写着更稳，跨 PS5.1 用得上。
+- open().write() 不写 with：实测 write 完文件还是 0 字节，靠 CPython 引用计数在
+  进程退出时兜底 close。能跑，但不是正确写法。较短的替代：
+  Path('t.json').write_text(json.dumps(...), encoding='utf-8')
+- 带 BOM 的 UTF-8 文件 json.load 会 JSONDecodeError: Unexpected UTF-8 BOM。
+  改 encoding='utf-8-sig' 就好。utf-8-sig 的 -sig 就是「处理签名(BOM)」。
