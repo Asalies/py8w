@@ -1,6 +1,6 @@
-height_m = float(input("请输入身高（米）："))
-weight_h = float(input("请输入体重（KG）："))
-bmi = weight_h / (height_m ** 2)
+height = float(input("请输入身高（米）："))
+weight = float(input("请输入体重（KG）："))
+bmi = weight / (height ** 2)
 if bmi < 18.5:
     label = "偏瘦"
 elif bmi < 24:

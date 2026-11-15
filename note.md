@@ -201,6 +201,7 @@ row取值时，下标从1开始了，看之前记录才发觉。
 - 11/12 异常：try/except 只包 int(raw)
 - 11/13 csv/JSON：标准库替掉手写 split
 - 11/14 pathlib：cwd 与脚本目录的区别
+- 11/15 删除accumulator无关变量并修改变量名，增加grade的异常判断，修改bmi的变量名
 
 ### 这周的五个「不报错的错」
 1. `strip()` 不用 `=` 接住，`if l.strip()` 只判断不改 l

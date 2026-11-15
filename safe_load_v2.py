@@ -26,4 +26,4 @@ if __name__ == "__main__":
     rows = safe_load(SRC)
     print(f"共{len(rows)}条有效数据")
     for name,score in rows:
-        print(f"    {name}:{score}")
+        print(f"    {name}: {score}")
