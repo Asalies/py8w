@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 SRC = Path("scores.txt")
-DST = Path("scores.json")
+DST = Path("tmp_test/scores.json")
 
 def txt_to_json(src=SRC, dst=DST):
     rows = []

@@ -4,7 +4,7 @@ from pathlib import Path
 
 CWD=Path(__file__).parent
 SRC=CWD/"scores.txt"
-DST=CWD/"scores.json"
+DST=CWD/"tmp_test/scores.json"
 def text_to_json(src=SRC, dst=DST):
     rows=[]
     with open(src,encoding="utf-8",newline="") as f:

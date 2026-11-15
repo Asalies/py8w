@@ -53,3 +53,4 @@ local_settings.py
 # === 运行生成文件 ===
 report.txt
 scores.json
+tmp_test
