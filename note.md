@@ -262,6 +262,7 @@ ensure_ascii 只影响非 ASCII 字符的 \u 转义，数据里没有汉字，�
   （text/html 猜 ISO-8859-1，中文必乱码）；
   最阴的是 r.json() 在编码猜错时不报错，返回键名乱码的 dict，rc=0。
 - 补完 Get-Content tmp_test\remote.json 的确认
+
 ### 补：ensure_ascii=False 双向验证完成
 python -c ... 写入 {'备注':'中文'} 到 t.json（encoding='utf-8'）
 Get-Content t.json -Encoding utf8 → {"备注": "中文"}，汉字保住。
@@ -278,3 +279,44 @@ Get-Content t.json -Encoding utf8 → {"备注": "中文"}，汉字保住。
   Path('t.json').write_text(json.dumps(...), encoding='utf-8')
 - 带 BOM 的 UTF-8 文件 json.load 会 JSONDecodeError: Unexpected UTF-8 BOM。
   改 encoding='utf-8-sig' 就好。utf-8-sig 的 -sig 就是「处理签名(BOM)」。
+
+# 2026/11/16
+- ModuleNotFoundError 先查「是不是自己的文件挡住了」。
+    脚本名和要 import 的库同名时，当前目录（sys.path[0]）里那个同名 .py
+    会被优先导入，然后再去 import 它自己的子模块，直接失败。
+    报错文案 'requests' is not a package = 单文件模块没有 __path__。
+    排查顺序：print(模块.__file__) → 再 pip freeze。
+    注意：python -c 在当前目录下同样中招。
+
+22. 乱码形态反推编码层（修正版）。
+    GBK字节 b'{"\xd0\xd5\xc3\xfb":"\xd5\xc5\xc8\xfd"}' 四种还原：
+      encoding='gbk'         → {'姓名': '张三'}
+      encoding='ISO-8859-1'  → {'ÐÕÃû': 'ÕÅÈý'}        à-ÿ 区单字节字符
+      encoding='utf-8'       → {'����': '����'}         errors='replace' → U+FFFD
+      encoding=None          → {'俷靡': '桲ʊ'}          guess_json_utf 失败 → 回落 .text → apparent_encoding
+    像汉字但读不通 = 被双字节编码误解。apparent_encoding 每次猜的可能不同
+    （CP949 / big5hkscs 都出现过），不能背具体字样。
+
+23. 诊断语句的位置决定它能证明什么。
+    get_encoding_from_headers(空 CaseInsensitiveDict) 必然返回 None，
+    所以「headers 还没赋值就打印 encoding」是假验证。
+    查输出之前先打印输入：dict(r.headers) 是不是已经填上了。
+## 11/17 编码
+
+24. 乱码还原 = 用错的那个编码压回字节，再用对的编码解。
+    可逆的唯一标准：能不能原样压回原字节。
+      iso-8859-1/latin-1  -> 一字节一字符，永远可逆
+      gbk/big5/big5hkscs  -> 通常可逆
+      errors="replace"    -> 不可逆！非法字节已被 U+FFFD 顶替，字节值丢失
+    不可逆现场：'{"����"}' 再 encode 成 utf-8 再 decode('gbk') = '{"锟斤拷"}'
+    字节从 15 膨胀到 31，d0 d5 c3 fb 已经不在了。
+    手工三步：看码位（是否都 <= 0xFF）-> 压回字节 -> 逐个试解码。
+
+25. candidates() 是候选生成器，不是判断器。
+    四组里只有两组排第一可信：application/json 组最高分是 cp949 的 '占쏙옙'（错），
+    charset=gbk 组 gb18030 和 cp949 同分 1.00。
+    遇 U+FFFD 就短路返回，别硬猜。
+
+26. r.json() 和 r.text 在 encoding 已设时必然一致（json.loads(r.text)）。
+    唯一差异是 encoding is None 时 json() 走 guess_json_utf 绕开 .text。
+    「json() 更准」这个说法我实测 26 个 UTF-8 样本找不到反例，没有证据，别当结论抄。

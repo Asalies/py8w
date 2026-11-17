@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 
 import requests
-from requests.exceptions import RequestException
 
 CWD = Path(__file__).parent
 DST = CWD / "tmp_test" / "remote.json"
