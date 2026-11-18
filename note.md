@@ -320,3 +320,93 @@ Get-Content t.json -Encoding utf8 → {"备注": "中文"}，汉字保住。
 26. r.json() 和 r.text 在 encoding 已设时必然一致（json.loads(r.text)）。
     唯一差异是 encoding is None 时 json() 走 guess_json_utf 绕开 .text。
     「json() 更准」这个说法我实测 26 个 UTF-8 样本找不到反例，没有证据，别当结论抄。
+
+## 11/18 编码续 + 综合任务
+
+### 做了什么
+- 定位 candidates() 报错真因：短路分支 5 个字段、正常分支 4 个，四组里只有一组触发
+- 四组 Content-Type 全部复现一遍，确认三组正常、application/json 那组炸
+- 抓真实站点看 encoding 与 meta 的关系（百度 / 新浪 / python.org / 163 / qq）
+- 存盘后读回发现长度相同但 == 为 False，定位到 3 处 \r 被换成 \n
+
+### 学到了什么
+
+27. '����' 是 4 个 U+FFFD，不是 2 个字符。
+    原名 '姓名' 只有 2 个字符，'姓名'.encode('gbk') = b'\xd0\xd5\xc3\xfb'，
+    四个字节按 utf-8 读，每个字节单独失败一次，各补一个 U+FFFD。
+    0xd0 / 0xd5 / 0xc3 落在 UTF-8 lead 区间（0xC2-0xF4）但缺合法续字节；
+    0xfb 连 lead 都不可能是，直接失败。
+    所以是长度膨胀，不是两个键粘成一个。
+    连带：data['姓名'] 报 KeyError，list(data.keys()) 才是 ['����']，
+    KeyError 不会提示「有个长得像的坏键」。
+    改对编码会改变数据形状，已经按坏键落盘的数据要再撞一次 KeyError。
+
+28. 存盘再读回，长度一样但 == 为 False（Windows 文本模式偷换换行）。
+    r.text 长度 2349，写进文件读回来长度还是 2349，== 却是 False。
+    逐位对比只有 3 处不同：位置 15、1829、2347，原文 '\r'(U+000D) 变成读回的 '\n'(U+000A)。
+    修法：open(..., newline="")，加完 == 变 True。
+    规矩：存 HTML 这类原始文本要字节级还原，必写 newline=""；
+    csv 模块必写；普通日志可以不写。
+
+29. too many values to unpack 不告诉你多几个。
+    解包器读到第 5 个元素当场抛，不需要数完，所以这句报错永远没有 got N。
+    not enough 才带 got N。
+    更坑的是字符串和元组报这一句一模一样：'cp949' 是 5 个字符，
+    for a, b, c, d in ['cp949', ...] 也报 too many。
+    所以看报错文本分不出「字段太多」还是「返回的是字符串」。
+    判据只有实测：print(type(res[0]).__name__, len(res[0]))。
+
+30. 同一函数两个分支返回的元组形状必须一致（今天真正的根因）。
+    短路分支 return [(-1, 0, "-", "-", "含 U+FFFD，不可逆")] 是 5 个字段，
+    正常分支 out.append((score(fixed), back, fwd, fixed)) 是 4 个字段。
+    结果四组里只有 application/json 那组 text 含 U+FFFD 触发短路，
+    只有这一组炸，其余三组照常跑完 —— bug 藏得很深。
+    给函数加特例分支时，先把 return 的形状对齐，再改逻辑。
+    顺带记住报错位置和出错位置是两处：for 那行是解包失败点（消费方），
+    形状问题在函数里（生产方）。
+
+31. candidates() 是候选生成器，不是判断器（补实证）。
+    形状修好后，text/html;charset=gbk 组仍有两条 1.00 同分：
+      gbk   压回、gb18030 再解  1.00  '{"姓名":"张三"}'   对
+      utf-8 压回、cp949 再解    1.00  '{"冶볟릫":"졽툒"}'   错
+    同分靠 sort 稳定性决定谁排前面，是运气不是判断。
+    原因：'冶볟릫' 也是合法常用汉字，is_common_han 全判真，分数打满。
+    结论：编码该由响应头和 meta 定，不能靠试。
+
+32. 编码三层优先级（今天定的交付规则）。
+    第一层：响应头 Content-Type 里有 charset，直接用。
+    第二层：没有，看页面开头 2KB 的 meta charset。
+    第三层：还没有，用 r.apparent_encoding 兜底。
+    依据：requests 只在响应头写了 charset 时才给对 encoding；
+    text/html 不带 charset 时一律回落 ISO-8859-1，中文必乱码。
+    r.json() 同样中招：编码猜错不报错，返回键名乱码的 dict，rc 还是 0。
+
+33. 真实站点实测（同一份字节，两种编码两种结果）。
+    www.baidu.com   200, text/html（无 charset）, encoding=ISO-8859-1, meta 写 utf-8, apparent=utf-8
+    www.sina.com.cn 同上
+    www.python.org  200, text/html; charset=utf-8, encoding=utf-8（走第一层）
+    www.163.com     403
+    www.qq.com      501, Content-Type 为空, encoding=None
+    百度同一位置：ISO-8859-1 读出来是乱码，utf-8 读出来是「百度一下，你就知」
+    字节数 2443，ISO-8859-1 文本 2443 个字符，utf-8 文本 2349 个字符。
+
+34. 截图里的残留代码和真实文件要分开看。
+    那行 if() 如果真在文件里，整个文件根本跑不起来，先报 SyntaxError: expected ':'。
+    能拿到 ValueError，说明它不在真实文件里，是粘贴残留。
+    判据：Python 是整体编译再执行，语法错的文件连第一行都跑不到。
+
+### 卡在哪
+同一个 candidates() 报错，我猜了三次：先说 got 3（方向反了），
+再说可能是返回字符串（这次真说中了一半，但根因不是它），
+最后靠逐组打印首元素的 len 才确定是分支形状不一致。
+教训：没有实测形状之前，所有猜测都只是猜测，别先改代码。
+
+### 明天从哪继续
+11/19：day18.py 端到端跑通（还没开始写）。
+- 至少跑 https://www.baidu.com（走第二层）和 https://www.python.org（走第一层），两个网址走不同分支才算过
+- 打印：URL / Content-Type / 有没有 charset / meta 声明 / apparent / 最终 encoding
+- 故意按错误编码读一次，把乱码原样打印出来
+- 正则 <title>(.*?)</title>，Flags 写 re.S | re.I
+- 存 data/page.html（newline=""）和 data/info.json（ensure_ascii=False），存完读回验证
+- 补交加练：一行代码证明 r.text 由 r.content 按 r.encoding 解码而来
+- 遗留：11/17 加练（mojibake 怎么来的、能不能还原）未交；candidates() 的元组形状还没修

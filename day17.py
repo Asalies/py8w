@@ -1,8 +1,7 @@
-
+import requests
 from requests.models import Response
 from requests.structures import CaseInsensitiveDict
 from requests.utils import get_encoding_from_headers
-import requests
 
 BODY = '{"姓名":"张三"}'.encode("gbk")
 print("BODY 原始字节:", BODY)
@@ -36,6 +35,8 @@ def score(s):
     return sum(1 for c in hans if is_common_han(c)) / len(hans)
 
 def candidates(text):
+    if "\ufffd" in text:
+        return [(-1.0,"-","-","含 U+FFFD，不可逆")]
     seen, out = {}, []
     for back in CANDIDATES:
         try:
@@ -64,6 +65,8 @@ for ct in ["text/html", "application/json", "text/html;charset=gbk",
     print("  encoding    :", repr(r.encoding))
     print("  apparent    :", repr(r.apparent_encoding))
     print("  json()      :", repr(r.json()))
+    if ct=="application/json":
+        print([(k, len(k)) for k in r.json()])
     print("  r.text      :", repr(r.text))
     print("  还原最可信 3 条:")
     for sc, back, fwd, fixed in candidates(r.text)[:3]:
